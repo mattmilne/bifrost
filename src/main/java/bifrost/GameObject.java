@@ -20,7 +20,7 @@ public class GameObject {
     private static int ID_COUNTER = 0;
     private int uid = -1;
 
-    private String name;
+    public String name;
     private Map<String, Component> components;
     private List<Component> componentsList;
     public transient Transform transform;
@@ -119,7 +119,7 @@ public class GameObject {
         this.doSerialization = false;
     }
 
-    public boolean doSerialize() {
+    public boolean doSerialization() {
         return doSerialization;
     }
 

@@ -130,7 +130,7 @@ public class Scene {
         try {
             FileWriter writer = new FileWriter("level.txt");
             List<GameObject> objectsToSerialize = this.gameObjects.stream()
-                    .filter(GameObject::doSerialize)
+                    .filter(GameObject::doSerialization)
                     .collect(Collectors.toList());
             writer.write(gson.toJson(objectsToSerialize));
             writer.close();
