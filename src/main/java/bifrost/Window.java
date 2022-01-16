@@ -1,5 +1,8 @@
 package bifrost;
 
+import observer.EventSystem;
+import observer.Observer;
+import observer.event.Event;
 import org.lwjgl.Version;
 import org.lwjgl.glfw.GLFWErrorCallback;
 import org.lwjgl.opengl.GL;
@@ -8,8 +11,8 @@ import renderer.Framebuffer;
 import renderer.PickingTexture;
 import renderer.Renderer;
 import renderer.Shader;
-import scene.LevelEditorScene;
-import scene.LevelScene;
+import scene.LevelEditorSceneInitializer;
+import scene.SceneInitializer;
 import util.AssetPool;
 
 import static org.lwjgl.glfw.Callbacks.glfwFreeCallbacks;
@@ -59,7 +62,7 @@ import static org.lwjgl.system.MemoryUtil.NULL;
 import static util.Settings.SCREEN_HEIGHT_PIXELS;
 import static util.Settings.SCREEN_WIDTH_PIXELS;
 
-public class Window {
+public class Window implements Observer {
     private int width;
     private int height;
     private final String title;
@@ -67,9 +70,7 @@ public class Window {
     private ImGuiLayer imguiLayer;
     private Framebuffer framebuffer;
     private PickingTexture pickingTexture;
-
-    public float r, g, b, a;
-    private final boolean fadeToBlack = false;
+    private boolean runtimePlaying = false;
 
     private static Window window = null;
 
@@ -78,26 +79,17 @@ public class Window {
     private Window() {
         this.width = 1920;
         this.height = 1080;
-        this.title = "Mario";
-        r = 1;
-        b = 1;
-        g = 1;
-        a = 1;
+        this.title = "BiFrost";
+        EventSystem.addObserver(this);
     }
 
-    public static void changeScene(int newScene) {
-        switch (newScene) {
-            case 0:
-                currentScene = new LevelEditorScene();
-                break;
-            case 1:
-                currentScene = new LevelScene();
-                break;
-            default:
-                assert false : "Unknown scene '" + newScene + "'";
-                break;
+    public static void changeScene(SceneInitializer sceneInitializer) {
+        if (currentScene != null) {
+            currentScene.destroy();
         }
 
+        getImGuiLayer().getPropertiesWindow().setActiveGameObject(null);
+        currentScene = new Scene(sceneInitializer);
         currentScene.load();
         currentScene.init();
         currentScene.start();
@@ -193,7 +185,7 @@ public class Window {
         this.imguiLayer = new ImGuiLayer(glfwWindow, pickingTexture);
         this.imguiLayer.initImGui();
 
-        Window.changeScene(0);
+        Window.changeScene(new LevelEditorSceneInitializer());
     }
 
     public void loop() {
@@ -226,13 +218,17 @@ public class Window {
             DebugDraw.beginFrame();
 
             this.framebuffer.bind();
-            glClearColor(r, g, b, a);
+            glClearColor(1, 1, 1, 1);
             glClear(GL_COLOR_BUFFER_BIT);
 
             if (dt >= 0) {
                 DebugDraw.draw();
                 Renderer.bindShader(defaultShader);
-                currentScene.update(dt);
+                if (runtimePlaying) {
+                    currentScene.update(dt);
+                } else {
+                    currentScene.editorUpdate(dt);
+                }
                 currentScene.render();
             }
             this.framebuffer.unbind();
@@ -245,8 +241,6 @@ public class Window {
             dt = endTime - beginTime;
             beginTime = endTime;
         }
-
-        currentScene.saveExit();
     }
 
     public static int getWidth() {
@@ -275,5 +269,26 @@ public class Window {
 
     public static ImGuiLayer getImGuiLayer() {
         return get().imguiLayer;
+    }
+
+    @Override
+    public void onNotify(GameObject object, Event event) {
+        switch (event.type) {
+            case GameEngineStartPlay:
+                this.runtimePlaying = true;
+                currentScene.save();
+                Window.changeScene(new LevelEditorSceneInitializer());
+                break;
+            case GameEngineStopPlay:
+                this.runtimePlaying = false;
+                Window.changeScene(new LevelEditorSceneInitializer());
+                break;
+            case LoadLevel:
+                Window.changeScene(new LevelEditorSceneInitializer());
+                break;
+            case SaveLevel:
+                currentScene.save();
+                break;
+        }
     }
 }

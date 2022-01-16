@@ -1,6 +1,5 @@
 package bifrost.serializer;
 
-import com.google.gson.JsonArray;
 import com.google.gson.JsonDeserializationContext;
 import com.google.gson.JsonDeserializer;
 import com.google.gson.JsonElement;
@@ -17,14 +16,16 @@ public class GameObjectSerializer implements JsonDeserializer<GameObject> {
     public GameObject deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
         JsonObject jsonObject = json.getAsJsonObject();
         String name = jsonObject.get("name").getAsString();
-        JsonArray components = jsonObject.getAsJsonArray("components");
-
         GameObject go = new GameObject(name);
-        for (JsonElement e : components) {
-            Component c = context.deserialize(e, Component.class);
-            go.addComponent(c);
-        }
-        go.transform = go.getComponent(Transform.class);
+        jsonObject.getAsJsonObject("components").entrySet()
+                .forEach(x -> {
+                    Component c = context.deserialize(x.getValue(), Component.class);
+                    go.addComponent(c);
+                    if (c instanceof Transform) {
+                        go.transform = go.getComponent(Transform.class);
+                    }
+                });
+
         return go;
     }
 }

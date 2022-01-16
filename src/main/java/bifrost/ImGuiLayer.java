@@ -1,6 +1,7 @@
 package bifrost;
 
 import editor.GameViewWindow;
+import editor.MenuBar;
 import editor.PropertiesWindow;
 import imgui.ImGui;
 import imgui.ImGuiIO;
@@ -92,6 +93,7 @@ public class ImGuiLayer {
     private final ImGuiImplGl3 imGuiGl3 = new ImGuiImplGl3();
     private final GameViewWindow gameViewWindow;
     private final PropertiesWindow propertiesWindow;
+    private final MenuBar menuBar;
 
     private static final String GLSL_VERSION = "#version 330";
 
@@ -99,6 +101,7 @@ public class ImGuiLayer {
         this.glfwWindow = glfwWindow;
         this.gameViewWindow = new GameViewWindow();
         this.propertiesWindow = new PropertiesWindow(pickingTexture);
+        this.menuBar = new MenuBar();
     }
 
     // Initialize Dear ImGui.
@@ -268,6 +271,7 @@ public class ImGuiLayer {
         gameViewWindow.imgui();
         propertiesWindow.update(dt, currentScene);
         propertiesWindow.imgui();
+        menuBar.imgui();
         ImGui.end();
         ImGui.render();
 

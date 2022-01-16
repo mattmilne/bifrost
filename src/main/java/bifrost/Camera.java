@@ -7,8 +7,8 @@ import org.joml.Vector3f;
 public class Camera {
 
     private static final float WORLD_POS_LEFT = 0.0f;
-    private static final float WORLD_POS_RIGHT = 32.0f * 40.0f;
-    private static final float WORLD_POS_TOP = 32.0f * 21.0f;
+    private static final float WORLD_POS_RIGHT = 6.0f;
+    private static final float WORLD_POS_TOP = 3.0f;
     private static final float WORLD_POS_BOTTOM = 0.0f;
     private static final float NEAR_CLIP = 0.0f;
     private static final float FAR_CLIP = 100.0f;

@@ -1,10 +1,19 @@
 package bifrost;
 
+import bifrost.serializer.GameObjectSerializer;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import component.Component;
+import component.SpriteRenderer;
+import component.serializer.ComponentSerializer;
 import imgui.ImGui;
+import util.AssetPool;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class GameObject {
 
@@ -12,9 +21,11 @@ public class GameObject {
     private int uid = -1;
 
     private String name;
-    private List<Component> components;
+    private Map<String, Component> components;
+    private List<Component> componentsList;
     public transient Transform transform;
     private transient boolean doSerialization = true;
+    private boolean isDead = false;
 
     public GameObject(String name) {
         init(name);
@@ -22,19 +33,20 @@ public class GameObject {
 
     private void init(String name) {
         this.name = name;
-        this.components = new ArrayList<>();
+        this.components = new ConcurrentHashMap<>();
+        this.componentsList = new ArrayList<>();
         this.uid = ID_COUNTER++;
     }
 
     public <T extends Component> T getComponent(Class<T> componentClass) {
-        for (Component c : components) {
-            if (componentClass.isAssignableFrom(c.getClass())) {
-                try {
-                    return componentClass.cast(c);
-                } catch (ClassCastException e) {
-                    e.printStackTrace();
-                    assert false : "Error: Casting component";
-                }
+        Component c = components.getOrDefault(componentClass.getSimpleName(), null);
+
+        if (c != null && componentClass.isAssignableFrom(c.getClass())) {
+            try {
+                return componentClass.cast(c);
+            } catch (ClassCastException e) {
+                e.printStackTrace();
+                assert false : "Error: Casting component";
             }
         }
 
@@ -42,10 +54,11 @@ public class GameObject {
     }
 
     public <T extends Component> void removeComponent(Class<T> componentClass) {
-        for (int i = 0; i < components.size(); i++) {
-            Component c = components.get(i);
+        components.remove(componentClass.getSimpleName());
+        for (int i = 0; i < componentsList.size(); i++) {
+            Component c = componentsList.get(i);
             if (componentClass.isAssignableFrom(c.getClass())) {
-                components.remove(i);
+                componentsList.remove(i);
                 return;
             }
         }
@@ -53,24 +66,37 @@ public class GameObject {
 
     public void addComponent(Component c) {
         c.generateId();
-        components.add(c);
+        components.put(c.getClass().getSimpleName(), c);
+        componentsList.add(c);
         c.gameObject = this;
     }
 
     public void update(float dt) {
-        for (int i = 0; i < components.size(); i++) {
-            components.get(i).update(dt);
+        Iterator<Map.Entry<String, Component>> it = components.entrySet().iterator();
+        while (it.hasNext()) {
+            Component c = it.next().getValue();
+            c.update(dt);
+        }
+    }
+
+    public void editorUpdate(float dt) {
+        Iterator<Map.Entry<String, Component>> it = components.entrySet().iterator();
+        while (it.hasNext()) {
+            Component c = it.next().getValue();
+            c.editorUpdate(dt);
         }
     }
 
     public void start() {
-        for (int i = 0; i < components.size(); i++) {
-            components.get(i).start();
+        for (int i = 0; i < componentsList.size(); i++) {
+            componentsList.get(i).start();
         }
     }
 
     public void imgui() {
-        for (Component c : components) {
+        Iterator<Map.Entry<String, Component>> it = components.entrySet().iterator();
+        while (it.hasNext()) {
+            Component c = it.next().getValue();
             if (ImGui.collapsingHeader(c.getClass().getSimpleName())) {
                 c.imgui();
             }
@@ -86,7 +112,7 @@ public class GameObject {
     }
 
     public List<Component> getAllComponents() {
-        return this.components;
+        return new ArrayList<>(this.components.values());
     }
 
     public void setNoSerialize() {
@@ -95,5 +121,42 @@ public class GameObject {
 
     public boolean doSerialize() {
         return doSerialization;
+    }
+
+    public void destroy() {
+        this.isDead = true;
+        for (int i = 0; i < componentsList.size(); i++) {
+            componentsList.get(i).destroy();
+        }
+    }
+
+    public GameObject copy() {
+        // TODO: come up with cleaner solution
+        Gson gson = new GsonBuilder()
+                .registerTypeAdapter(Component.class, new ComponentSerializer())
+                .registerTypeAdapter(GameObject.class, new GameObjectSerializer())
+                .create();
+        String objAsJson = gson.toJson(this);
+        GameObject gameObject = gson.fromJson(objAsJson, GameObject.class);
+
+        gameObject.generateUid();
+        for (Component c : gameObject.getAllComponents()) {
+            c.generateId();
+        }
+
+        SpriteRenderer sprite = gameObject.getComponent(SpriteRenderer.class);
+        if (sprite != null && sprite.getTexture() != null) {
+            sprite.setTexture(AssetPool.getTexture(sprite.getTexture().getFilepath()));
+        }
+
+        return gameObject;
+    }
+
+    public void generateUid() {
+        this.uid = ID_COUNTER++;
+    }
+
+    public boolean isDead() {
+        return this.isDead;
     }
 }

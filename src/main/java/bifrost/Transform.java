@@ -42,8 +42,8 @@ public class Transform extends Component {
     public void imgui() {
         JImGui.drawVec2Control("Position", this.position);
         JImGui.drawVec2Control("Scale", this.scale, 32.0f);
-        JImGui.drawFloatControl("Rotation", this.rotation);
-        JImGui.drawIntControl("Z-Index", this.zIndex);
+        this.rotation = JImGui.drawFloatControl("Rotation", this.rotation);
+        this.zIndex = JImGui.drawIntControl("Z-Index", this.zIndex);
     }
 
     @Override

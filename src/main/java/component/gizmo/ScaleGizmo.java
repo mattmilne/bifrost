@@ -1,5 +1,6 @@
-package component;
+package component.gizmo;
 
+import component.Sprite;
 import editor.PropertiesWindow;
 import bifrost.MouseListener;
 
@@ -19,6 +20,6 @@ public class ScaleGizmo extends Gizmo {
             }
         }
 
-        super.update(dt);
+        super.editorUpdate(dt);
     }
 }

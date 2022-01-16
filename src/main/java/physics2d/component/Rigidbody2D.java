@@ -1,15 +1,11 @@
 package physics2d.component;
 
 import component.Component;
-import lombok.Getter;
-import lombok.Setter;
 import org.jbox2d.dynamics.Body;
 import org.joml.Vector2f;
 import physics2d.enums.BodyType;
 
-@Getter
-@Setter
-public class RigidBody2D extends Component {
+public class Rigidbody2D extends Component {
     private Vector2f velocity = new Vector2f();
     private float angularDamping = 0.8f;
     private float linearDamping = 0.9f;
@@ -19,7 +15,7 @@ public class RigidBody2D extends Component {
     private boolean fixedRotation = false;
     private boolean continuousCollision = true;
 
-    private Body rawBody = null;
+    private transient Body rawBody = null;
 
     @Override
     public void update(float dt) {
@@ -27,5 +23,37 @@ public class RigidBody2D extends Component {
             this.gameObject.transform.position.set(rawBody.getPosition().x, rawBody.getPosition().y);
             this.gameObject.transform.rotation = (float) Math.toDegrees(rawBody.getAngle());
         }
+    }
+
+    public void setRawBody(Body body) {
+        this.rawBody = body;
+    }
+
+    public Body getRawBody() {
+        return this.rawBody;
+    }
+
+    public float getAngularDamping() {
+        return this.angularDamping;
+    }
+
+    public float getLinearDamping() {
+        return this.linearDamping;
+    }
+
+    public boolean isFixedRotation() {
+        return this.fixedRotation;
+    }
+
+    public boolean isContinuousCollision() {
+        return this.continuousCollision;
+    }
+
+    public BodyType getBodyType() {
+        return this.bodyType;
+    }
+
+    public float getMass() {
+        return this.mass;
     }
 }

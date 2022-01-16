@@ -3,6 +3,7 @@ package component;
 import editor.JImGui;
 import imgui.ImGui;
 import bifrost.GameObject;
+import imgui.type.ImInt;
 import org.joml.Vector2f;
 import org.joml.Vector3f;
 import org.joml.Vector4f;
@@ -19,9 +20,9 @@ public abstract class Component {
 
     public void start() {}
 
-    public void update(float dt) {
+    public void update(float dt) {}
 
-    }
+    public void editorUpdate(float dt) {}
 
     public void imgui() {
         try {
@@ -37,7 +38,7 @@ public abstract class Component {
                     field.setAccessible(true);
                 }
 
-                Class<?> type = field.getType();
+                Class type = field.getType();
                 Object value = field.get(this);
                 String name = field.getName();
 
@@ -63,9 +64,13 @@ public abstract class Component {
                     }
                 } else if (type == Vector4f.class) {
                     Vector4f val = (Vector4f) value;
-                    float[] imVec = {val.x, val.y, val.z, val.w};
-                    if (ImGui.dragFloat4(name + ": ", imVec)) {
-                        val.set(imVec[0], imVec[1], imVec[2], imVec[3]);
+                    JImGui.drawColor4Control(name, val);
+                } else if (type.isEnum()) {
+                    String[] enumValues = getEnumValues(type);
+                    String enumType = ((Enum<?>) value).name();
+                    ImInt index = new ImInt(indexOf(enumType, enumValues));
+                    if (ImGui.combo(field.getName(), index, enumValues, enumValues.length)) {
+                        field.set(this, type.getEnumConstants()[index.get()]);
                     }
                 }
 
@@ -90,5 +95,27 @@ public abstract class Component {
 
     public static void init(int maxId) {
         ID_COUNTER = maxId;
+    }
+
+    private <T extends Enum<T>> String[] getEnumValues(Class<T> enumType) {
+        String[] enumValues = new String[enumType.getEnumConstants().length];
+        int i = 0;
+        for (T c : enumType.getEnumConstants()) {
+            enumValues[i] = c.name();
+            i++;
+        }
+        return enumValues;
+    }
+
+    public void destroy() {}
+
+    private int indexOf(String obj, String[] arr) {
+        for (int i = 0; i < arr.length; i++) {
+            if (obj.equals(arr[i])) {
+                return i;
+            }
+        }
+
+        return -1;
     }
 }
