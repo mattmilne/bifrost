@@ -15,10 +15,10 @@ public class EditorCamera extends Component {
 
     private final Camera levelEditorCamera;
     private Vector2f clickOrigin;
-    // 2 frames
+    private boolean reset = false;
+
     private float dragDebounce = 0.032f;
     private float lerpTime = 0.0f;
-    private boolean reset = false;
 
     public EditorCamera(Camera camera) {
         this.levelEditorCamera = camera;
@@ -27,25 +27,25 @@ public class EditorCamera extends Component {
 
     @Override
     public void editorUpdate(float dt) {
-        if (MouseListener.mouseButtonDown(GLFW_MOUSE_BUTTON_MIDDLE)) {
-            Vector2f mousePos = MouseListener.getWorld();
-            if (dragDebounce > 0.0f) {
-                this.clickOrigin = mousePos;
-                dragDebounce -= dt;
-                return;
-            }
-
+        if (MouseListener.mouseButtonDown(GLFW_MOUSE_BUTTON_MIDDLE) && dragDebounce > 0) {
+            this.clickOrigin = new Vector2f(MouseListener.getWorldX(), MouseListener.getWorldY());
+            dragDebounce -= dt;
+            return;
+        } else if (MouseListener.mouseButtonDown(GLFW_MOUSE_BUTTON_MIDDLE)) {
+            Vector2f mousePos = new Vector2f(MouseListener.getWorldX(), MouseListener.getWorldY());
             Vector2f delta = new Vector2f(mousePos).sub(this.clickOrigin);
             levelEditorCamera.position.sub(delta.mul(dt).mul(DRAG_SENSITIVITY));
-            clickOrigin.lerp(mousePos, dt);
-        } else if (dragDebounce <= 0.0f) {
+            this.clickOrigin.lerp(mousePos, dt);
+        }
+
+        if (dragDebounce <= 0.0f && !MouseListener.mouseButtonDown(GLFW_MOUSE_BUTTON_MIDDLE)) {
             dragDebounce = 0.1f;
         }
 
-        float scrollY = MouseListener.getScrollY();
-        if (scrollY != 0.0f) {
-            float addValue = (float) Math.pow(Math.abs(scrollY * SCROLL_SENSITIVITY), 1.0f / levelEditorCamera.getZoom());
-            addValue *= -Math.signum(scrollY);
+        if (MouseListener.getScrollY() != 0.0f) {
+            float addValue = (float) Math.pow(Math.abs(MouseListener.getScrollY() * SCROLL_SENSITIVITY),
+                    1 / levelEditorCamera.getZoom());
+            addValue *= -Math.signum(MouseListener.getScrollY());
             levelEditorCamera.addZoom(addValue);
         }
 

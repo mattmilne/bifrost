@@ -197,12 +197,12 @@ public class RenderBatch implements Comparable<RenderBatch> {
         }
 
         boolean isRotated = sprite.gameObject.transform.rotation != 0.0f;
-        Matrix4f transfromMatrix = new Matrix4f().identity();
+        Matrix4f transformMatrix = new Matrix4f().identity();
         if (isRotated) {
-            transfromMatrix.translate(sprite.gameObject.transform.position.x, sprite.gameObject.transform.position.y,
+            transformMatrix.translate(sprite.gameObject.transform.position.x, sprite.gameObject.transform.position.y,
                     0f);
-            transfromMatrix.rotate((float) Math.toRadians(sprite.gameObject.transform.rotation), 0, 0, 1);
-            transfromMatrix.scale(sprite.gameObject.transform.scale.x, sprite.gameObject.transform.scale.y, 1);
+            transformMatrix.rotate((float) Math.toRadians(sprite.gameObject.transform.rotation), 0, 0, 1);
+            transformMatrix.scale(sprite.gameObject.transform.scale.x, sprite.gameObject.transform.scale.y, 1);
         }
 
         // Add vertex with the appropriate properties
@@ -221,7 +221,7 @@ public class RenderBatch implements Comparable<RenderBatch> {
                     sprite.gameObject.transform.position.y + (yAdd * sprite.gameObject.transform.scale.y), 0, 1);
 
             if (isRotated) {
-                currentPos = new Vector4f(xAdd, yAdd, 0, 1).mul(transfromMatrix);
+                currentPos = new Vector4f(xAdd, yAdd, 0, 1).mul(transformMatrix);
             }
 
             // Load position

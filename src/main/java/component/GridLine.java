@@ -23,7 +23,7 @@ public class GridLine extends Component {
         float width = (int) (projectionSize.x * camera.getZoom()) + Settings.GRID_WIDTH * 2;
         float height = (int) (projectionSize.y * camera.getZoom()) + Settings.GRID_HEIGHT * 2;
 
-        int maxLines = Math.max(numHorizontalLines, numVerticalLines);
+        int maxLines = Math.max(numVerticalLines, numHorizontalLines);
         Vector3f color = new Vector3f(0.2f, 0.2f, 0.2f);
         for (int i = 0; i < maxLines; i++) {
             float x = firstX + (Settings.GRID_WIDTH * i);

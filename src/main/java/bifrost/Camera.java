@@ -32,7 +32,8 @@ public class Camera {
 
     public void adjustProjection() {
         projectionMatrix.identity();
-        projectionMatrix.ortho(WORLD_POS_LEFT, projectionSize.x * zoom, WORLD_POS_BOTTOM, projectionSize.y * zoom, NEAR_CLIP, FAR_CLIP);
+        projectionMatrix.ortho(WORLD_POS_LEFT, projectionSize.x * zoom, WORLD_POS_BOTTOM,
+                projectionSize.y * zoom, NEAR_CLIP, FAR_CLIP);
         inverseProjection = new Matrix4f(projectionMatrix).invert();
     }
 

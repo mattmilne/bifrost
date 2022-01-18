@@ -50,7 +50,13 @@ public class GameViewWindow {
         ImGui.end();
     }
 
-    private static ImVec2 getLargestSizeForViewport() {
+    public boolean getWantCaptureMouse() {
+        float mouseX = MouseListener.getX();
+        float mouseY = MouseListener.getY();
+        return mouseX >= leftX && mouseX <= rightX && mouseY >= bottomY && mouseY <= topY;
+    }
+
+    private ImVec2 getLargestSizeForViewport() {
         ImVec2 windowSize = new ImVec2();
         ImGui.getContentRegionAvail(windowSize);
 
@@ -65,7 +71,7 @@ public class GameViewWindow {
         return new ImVec2(aspectWidth, aspectHeight);
     }
 
-    private static ImVec2 getCenteredPositionForViewport(ImVec2 aspectSize) {
+    private ImVec2 getCenteredPositionForViewport(ImVec2 aspectSize) {
         ImVec2 windowSize = new ImVec2();
         ImGui.getContentRegionAvail(windowSize);
 
@@ -73,11 +79,5 @@ public class GameViewWindow {
         float viewportY = (windowSize.y / 2.0f) - (aspectSize.y / 2.0f);
 
         return new ImVec2(viewportX + ImGui.getCursorPosX(), viewportY + ImGui.getCursorPosY());
-    }
-
-    public static boolean getWantCaptureMouse() {
-        float mouseX = MouseListener.getX();
-        float mouseY = MouseListener.getY();
-        return mouseX >= leftX && mouseX <= rightX && mouseY >= bottomY && mouseY <= topY;
     }
 }
