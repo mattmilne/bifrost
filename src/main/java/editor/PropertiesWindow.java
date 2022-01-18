@@ -1,50 +1,29 @@
 package editor;
 
-import component.NonPickable;
 import imgui.ImGui;
 import bifrost.GameObject;
-import bifrost.MouseListener;
-import bifrost.Scene;
 import physics2d.component.Box2DCollider;
 import physics2d.component.CircleCollider;
 import physics2d.component.Rigidbody2D;
 import renderer.PickingTexture;
 
-import static org.lwjgl.glfw.GLFW.GLFW_MOUSE_BUTTON_LEFT;
+import java.util.ArrayList;
+import java.util.List;
 
 public class PropertiesWindow {
 
-    private static final float INITIAL_DEBOUNCE_TIME = 0.2f;
-
+    private final List<GameObject> activeGameObjects;
     private GameObject activeGameObject = null;
     private final PickingTexture pickingTexture;
 
-    private float debounceTime = INITIAL_DEBOUNCE_TIME;
-
     public PropertiesWindow(PickingTexture pickingTexture) {
+        this.activeGameObjects = new ArrayList<>();
         this.pickingTexture = pickingTexture;
     }
 
-    public void update(float dt, Scene currentScene) {
-        debounceTime -= dt;
-        if (!MouseListener.isDragging() && MouseListener.mouseButtonDown(GLFW_MOUSE_BUTTON_LEFT) && debounceTime < 0) {
-            int x = (int) MouseListener.getScreenX();
-            int y = (int) MouseListener.getScreenY();
-
-            int gameObjectId = pickingTexture.readPixel(x, y);
-            GameObject pickedObject = currentScene.getGameObject(gameObjectId);
-            if (pickedObject != null && pickedObject.getComponent(NonPickable.class) == null) {
-                activeGameObject = pickedObject;
-            } else if (pickedObject == null && !MouseListener.isDragging()) {
-                activeGameObject = null;
-            }
-
-            this.debounceTime = INITIAL_DEBOUNCE_TIME;
-        }
-    }
-
     public void imgui() {
-        if (activeGameObject != null) {
+        if (activeGameObjects.size() == 1 && activeGameObjects.get(0) != null) {
+            activeGameObject = activeGameObjects.get(0);
             ImGui.begin("Properties");
 
             if (ImGui.beginPopupContextWindow("ComponentAdder")) {
@@ -79,10 +58,31 @@ public class PropertiesWindow {
     }
 
     public GameObject getActiveGameObject() {
-        return this.activeGameObject;
+        return activeGameObjects.size() == 1
+                ? activeGameObjects.get(0)
+                : null;
+    }
+
+    public List<GameObject> getActiveGameObjects() {
+        return activeGameObjects;
+    }
+
+    public void clearSelected() {
+        this.activeGameObjects.clear();
     }
 
     public void setActiveGameObject(GameObject gameObject) {
-        this.activeGameObject = gameObject;
+        if (gameObject != null) {
+            clearSelected();
+            this.activeGameObjects.add(gameObject);
+        }
+    }
+
+    public void addActiveGameObject(GameObject gameObject) {
+        this.activeGameObjects.add(gameObject);
+    }
+
+    public PickingTexture getPickingTexture() {
+        return this.pickingTexture;
     }
 }

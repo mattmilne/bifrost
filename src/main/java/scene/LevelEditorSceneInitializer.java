@@ -2,6 +2,7 @@ package scene;
 
 import bifrost.Sound;
 import component.EditorCamera;
+import component.KeyControl;
 import component.StateMachine;
 import component.gizmo.GizmoSystem;
 import component.GridLine;
@@ -37,6 +38,7 @@ public class LevelEditorSceneInitializer extends SceneInitializer {
         levelEditorStuff = scene.createGameObject("LevelEditor");
         levelEditorStuff.setNoSerialize();
         levelEditorStuff.addComponent(new MouseControl());
+        levelEditorStuff.addComponent(new KeyControl());
         levelEditorStuff.addComponent(new GridLine());
         levelEditorStuff.addComponent(new EditorCamera(scene.camera()));
         levelEditorStuff.addComponent(new GizmoSystem(gizmos));
