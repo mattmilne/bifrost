@@ -1,7 +1,9 @@
 package editor;
 
+import component.SpriteRenderer;
 import imgui.ImGui;
 import bifrost.GameObject;
+import org.joml.Vector4f;
 import physics2d.component.Box2DCollider;
 import physics2d.component.CircleCollider;
 import physics2d.component.Rigidbody2D;
@@ -13,12 +15,14 @@ import java.util.List;
 public class PropertiesWindow {
 
     private final List<GameObject> activeGameObjects;
+    private final List<Vector4f> activeGameObjectsOrigColor;
     private GameObject activeGameObject = null;
     private final PickingTexture pickingTexture;
 
     public PropertiesWindow(PickingTexture pickingTexture) {
         this.activeGameObjects = new ArrayList<>();
         this.pickingTexture = pickingTexture;
+        this.activeGameObjectsOrigColor = new ArrayList<>();
     }
 
     public void imgui() {
@@ -68,7 +72,18 @@ public class PropertiesWindow {
     }
 
     public void clearSelected() {
+        if (activeGameObjectsOrigColor.size() > 0) {
+            for (int i = 0; i < activeGameObjects.size(); i++) {
+                GameObject activeGameObject = activeGameObjects.get(i);
+                SpriteRenderer spriteRenderer = activeGameObject.getComponent(SpriteRenderer.class);
+                if (spriteRenderer != null) {
+                    spriteRenderer.setColor(activeGameObjectsOrigColor.get(i));
+                }
+            }
+        }
+
         this.activeGameObjects.clear();
+        this.activeGameObjectsOrigColor.clear();
     }
 
     public void setActiveGameObject(GameObject gameObject) {
@@ -79,6 +94,14 @@ public class PropertiesWindow {
     }
 
     public void addActiveGameObject(GameObject gameObject) {
+        SpriteRenderer spriteRenderer = gameObject.getComponent(SpriteRenderer.class);
+        if (spriteRenderer != null) {
+            this.activeGameObjectsOrigColor.add(new Vector4f(spriteRenderer.getColor()));
+            spriteRenderer.setColor(new Vector4f(0.8f, 0.8f, 0.0f, 0.8f));
+        } else {
+            this.activeGameObjectsOrigColor.add(new Vector4f());
+        }
+
         this.activeGameObjects.add(gameObject);
     }
 

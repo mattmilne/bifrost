@@ -1,5 +1,7 @@
 package bifrost;
 
+import java.util.Arrays;
+
 import static org.lwjgl.glfw.GLFW.GLFW_PRESS;
 import static org.lwjgl.glfw.GLFW.GLFW_RELEASE;
 
@@ -9,6 +11,10 @@ public class KeyListener {
     private final boolean[] keyBeginPressed = new boolean[350];
 
     private KeyListener() {}
+
+    public static void endFrame() {
+        Arrays.fill(get().keyBeginPressed, false);
+    }
 
     public static KeyListener get() {
         if (KeyListener.instance == null) {
@@ -33,11 +39,6 @@ public class KeyListener {
     }
 
     public static boolean keyBeginPress(int keyCode) {
-        boolean result = get().keyBeginPressed[keyCode];
-        if (result) {
-            get().keyBeginPressed[keyCode] = false;
-        }
-
-        return result;
+        return get().keyBeginPressed[keyCode];
     }
 }

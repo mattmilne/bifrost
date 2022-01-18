@@ -2,11 +2,14 @@ package physics2d;
 
 import bifrost.GameObject;
 import bifrost.Transform;
+import org.jbox2d.collision.shapes.CircleShape;
 import org.jbox2d.collision.shapes.PolygonShape;
 import org.jbox2d.common.Vec2;
 import org.jbox2d.dynamics.Body;
 import org.jbox2d.dynamics.BodyDef;
 import org.jbox2d.dynamics.BodyType;
+import org.jbox2d.dynamics.Fixture;
+import org.jbox2d.dynamics.FixtureDef;
 import org.jbox2d.dynamics.World;
 import org.joml.Vector2f;
 import physics2d.component.Box2DCollider;
@@ -35,6 +38,9 @@ public class Physics2D {
             bodyDef.linearDamping = rigidBody2D.getLinearDamping();
             bodyDef.fixedRotation = rigidBody2D.isFixedRotation();
             bodyDef.bullet = rigidBody2D.isContinuousCollision();
+            bodyDef.gravityScale = rigidBody2D.gravityScale;
+            bodyDef.angularVelocity = rigidBody2D.angularVelocity;
+            bodyDef.userData = rigidBody2D.gameObject;
 
             switch (rigidBody2D.getBodyType()) {
                 case Kinematic:
@@ -48,27 +54,20 @@ public class Physics2D {
                     break;
             }
 
-            PolygonShape shape = new PolygonShape();
+            Body body = this.world.createBody(bodyDef);
+            body.m_mass = rigidBody2D.getMass();
+            rigidBody2D.setRawBody(body);
+
             CircleCollider circleCollider;
             Box2DCollider box2DCollider;
 
             if ((circleCollider = object.getComponent(CircleCollider.class)) != null) {
-                shape.setRadius(circleCollider.getRadius());
-            } else if ((box2DCollider = object.getComponent(Box2DCollider.class)) != null) {
-                Vector2f halfSize = new Vector2f(box2DCollider.getHalfSize()).mul(0.5f);
-                Vector2f offset = box2DCollider.getOffset();
-                Vector2f origin = new Vector2f(box2DCollider.getOrigin());
-                shape.setAsBox(halfSize.x, halfSize.y, new Vec2(origin.x, origin.y), 0.0f);
-
-                Vec2 pos = bodyDef.position;
-                float xPos = pos.x + offset.x;
-                float yPos = pos.y + offset.y;
-                bodyDef.position.set(xPos, yPos);
+                addCircleCollider(rigidBody2D, circleCollider);
             }
 
-            Body body = this.world.createBody(bodyDef);
-            rigidBody2D.setRawBody(body);
-            body.createFixture(shape, rigidBody2D.getMass());
+            if ((box2DCollider = object.getComponent(Box2DCollider.class)) != null) {
+                addBox2DCollider(rigidBody2D, box2DCollider);
+            }
         }
     }
 
@@ -80,6 +79,41 @@ public class Physics2D {
         }
     }
 
+    public void setIsSensor(Rigidbody2D rb) {
+        Body body = rb.getRawBody();
+        if (body == null) return;
+
+        Fixture fixture = body.getFixtureList();
+        while (fixture != null) {
+            fixture.m_isSensor = true;
+            fixture = fixture.m_next;
+        }
+    }
+
+    public void setNotSensor(Rigidbody2D rb) {
+        Body body = rb.getRawBody();
+        if (body == null) return;
+
+        Fixture fixture = body.getFixtureList();
+        while (fixture != null) {
+            fixture.m_isSensor = false;
+            fixture = fixture.m_next;
+        }
+    }
+
+    public void resetCircleCollider(Rigidbody2D rb, CircleCollider circleCollider) {
+        Body body = rb.getRawBody();
+        if (body == null) return;
+
+        int size = fixtureListSize(body);
+        for (int i = 0; i < size; i++) {
+            body.destroyFixture(body.getFixtureList());
+        }
+
+        addCircleCollider(rb, circleCollider);
+        body.resetMassData();
+    }
+
     public void destroyGameObject(GameObject gameObject) {
         Body rawBody;
         Rigidbody2D rigidbody2D = gameObject.getComponent(Rigidbody2D.class);
@@ -87,5 +121,70 @@ public class Physics2D {
             world.destroyBody(rawBody);
             rigidbody2D.setRawBody(null);
         }
+    }
+
+    public void resetBox2DCollider(Rigidbody2D rb, Box2DCollider boxCollider) {
+        Body body = rb.getRawBody();
+        if (body == null) return;
+
+        int size = fixtureListSize(body);
+        for (int i = 0; i < size; i++) {
+            body.destroyFixture(body.getFixtureList());
+        }
+
+        addBox2DCollider(rb, boxCollider);
+        body.resetMassData();
+    }
+
+    public void addBox2DCollider(Rigidbody2D rigidbody2D, Box2DCollider box2DCollider) {
+        Body body = rigidbody2D.getRawBody();
+        assert body != null : "Raw body must not be null";
+
+        PolygonShape shape = new PolygonShape();
+        Vector2f halfSize = new Vector2f(box2DCollider.getHalfSize()).mul(0.5f);
+        Vector2f offset = box2DCollider.getOffset();
+        Vector2f origin = new Vector2f(box2DCollider.getOrigin());
+        shape.setAsBox(halfSize.x, halfSize.y, new Vec2(offset.x, offset.y), 0.0f);
+
+        FixtureDef fixtureDef = new FixtureDef();
+        fixtureDef.shape = shape;
+        fixtureDef.density = 1.0f;
+        fixtureDef.friction = rigidbody2D.getFriction();
+        fixtureDef.userData = box2DCollider.gameObject;
+        fixtureDef.isSensor = rigidbody2D.isSensor();
+        body.createFixture(fixtureDef);
+    }
+
+    public void addCircleCollider(Rigidbody2D rb, CircleCollider circleCollider) {
+        Body body = rb.getRawBody();
+        assert body != null : "Raw body must not be null";
+
+        CircleShape shape = new CircleShape();
+        shape.setRadius(circleCollider.getRadius());
+        shape.m_p.set(circleCollider.getOffset().x, circleCollider.getOffset().y);
+
+        FixtureDef fixtureDef = new FixtureDef();
+        fixtureDef.shape = shape;
+        fixtureDef.density = 1.0f;
+        fixtureDef.friction = rb.getFriction();
+        fixtureDef.userData = circleCollider.gameObject;
+        fixtureDef.isSensor = rb.isSensor();
+        body.createFixture(fixtureDef);
+    }
+
+    public RaycastInfo raycast(GameObject requestingObject, Vector2f point1, Vector2f point2) {
+        RaycastInfo callback = new RaycastInfo(requestingObject);
+        world.raycast(callback, new Vec2(point1.x, point1.y), new Vec2(point2.x, point2.y));
+        return callback;
+    }
+
+    private int fixtureListSize(Body body) {
+        int size = 0;
+        Fixture fixture = body.getFixtureList();
+        while (fixture != null) {
+            size++;
+            fixture = fixture.m_next;
+        }
+        return size;
     }
 }

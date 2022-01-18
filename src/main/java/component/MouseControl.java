@@ -5,6 +5,7 @@ import bifrost.KeyListener;
 import bifrost.MouseListener;
 import bifrost.Scene;
 import bifrost.Window;
+import editor.PropertiesWindow;
 import org.joml.Vector2f;
 import org.joml.Vector2i;
 import org.joml.Vector4f;
@@ -21,7 +22,7 @@ import static org.lwjgl.glfw.GLFW.GLFW_MOUSE_BUTTON_LEFT;
 public class MouseControl extends Component {
 
     GameObject holdingObject = null;
-    private static final float DEBOUNCE_TIME = 0.05f;
+    private static final float DEBOUNCE_TIME = 0.2f;
     private float debounce = DEBOUNCE_TIME;
 
     private boolean boxSelectSet = false;
@@ -57,15 +58,22 @@ public class MouseControl extends Component {
         PickingTexture pickingTexture = Window.getImGuiLayer().getPropertiesWindow().getPickingTexture();
         Scene currentScene = Window.getScene();
 
-        if (holdingObject != null && debounce <= 0.0f) {
+        if (holdingObject != null) {
             float x = MouseListener.getWorldX();
             float y = MouseListener.getWorldY();
             holdingObject.transform.position.x = ((int) Math.floor(x / Settings.GRID_WIDTH) * Settings.GRID_WIDTH) + Settings.GRID_WIDTH / 2.0f;
             holdingObject.transform.position.y = ((int) Math.floor(y / Settings.GRID_HEIGHT) * Settings.GRID_HEIGHT) + Settings.GRID_HEIGHT / 2.0f;
 
             if (MouseListener.mouseButtonDown(GLFW_MOUSE_BUTTON_LEFT)) {
-                place();
-                debounce = DEBOUNCE_TIME;
+                float halfWidth = Settings.GRID_WIDTH / 2.0f;
+                float halfHeight = Settings.GRID_HEIGHT / 2.0f;
+                if (MouseListener.isDragging() && !blockInSquare(holdingObject.transform.position.x - halfWidth,
+                        holdingObject.transform.position.y - halfHeight)) {
+                    place();
+                } else if (!MouseListener.isDragging() && debounce < 0) {
+                    place();
+                    debounce = DEBOUNCE_TIME;
+                }
             }
 
             if (KeyListener.isKeyPressed(GLFW_KEY_ESCAPE)) {
@@ -133,5 +141,29 @@ public class MouseControl extends Component {
                 }
             }
         }
+    }
+
+    private boolean blockInSquare(float x, float y) {
+        PropertiesWindow propertiesWindow = Window.getImGuiLayer().getPropertiesWindow();
+        Vector2f start = new Vector2f(x, y);
+        Vector2f end = new Vector2f(start).add(new Vector2f(Settings.GRID_WIDTH, Settings.GRID_HEIGHT));
+
+        Vector2f startScreenF = MouseListener.worldToScreen(start);
+        Vector2f endScreenF = MouseListener.worldToScreen(end);
+
+        Vector2i startScreen = new Vector2i((int) startScreenF.x + 2, (int) startScreenF.y + 2);
+        Vector2i endScreen = new Vector2i((int) endScreenF.x - 2, (int) endScreenF.y - 2);
+
+        float[] gameObjectIds = propertiesWindow.getPickingTexture().readPixels(startScreen, endScreen);
+        for (int i = 0; i < gameObjectIds.length; i++) {
+            if (gameObjectIds[i] >= 0) {
+                GameObject pickedObject = Window.getScene().getGameObject((int) gameObjectIds[i]);
+                if (pickedObject.getComponent(NonPickable.class) == null) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
     }
 }
