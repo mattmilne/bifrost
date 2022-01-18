@@ -13,7 +13,10 @@ public class Camera {
     private static final float NEAR_CLIP = 0.0f;
     private static final float FAR_CLIP = 100.0f;
 
-    private final Matrix4f projectionMatrix, viewMatrix, inverseProjection, inverseView;
+    private final Matrix4f projectionMatrix;
+    private final Matrix4f viewMatrix;
+    private Matrix4f inverseProjection;
+    private Matrix4f inverseView;
     public Vector2f position;
     private final Vector2f projectionSize = new Vector2f(WORLD_POS_RIGHT, WORLD_POS_TOP);
     private float zoom = 1.0f;
@@ -29,9 +32,8 @@ public class Camera {
 
     public void adjustProjection() {
         projectionMatrix.identity();
-//        projectionSize.set(WORLD_POS_RIGHT * zoom, WORLD_POS_TOP * zoom);
         projectionMatrix.ortho(WORLD_POS_LEFT, projectionSize.x * zoom, WORLD_POS_BOTTOM, projectionSize.y * zoom, NEAR_CLIP, FAR_CLIP);
-        projectionMatrix.invert(inverseProjection);
+        inverseProjection = new Matrix4f(projectionMatrix).invert();
     }
 
     public Matrix4f getViewMatrix() {
@@ -43,7 +45,7 @@ public class Camera {
                 cameraFront.add(position.x, position.y, 0.0f),
                 cameraUp
         );
-        viewMatrix.invert(inverseView);
+        inverseView = new Matrix4f(viewMatrix).invert();
 
         return viewMatrix;
     }

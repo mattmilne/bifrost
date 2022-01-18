@@ -8,6 +8,7 @@ import imgui.ImFontAtlas;
 import imgui.ImFontConfig;
 import imgui.ImGui;
 import imgui.ImGuiIO;
+import imgui.ImGuiViewport;
 import imgui.callback.ImStrConsumer;
 import imgui.callback.ImStrSupplier;
 import imgui.flag.ImGuiConfigFlags;
@@ -37,6 +38,8 @@ import static org.lwjgl.glfw.GLFW.GLFW_PRESS;
 import static org.lwjgl.glfw.GLFW.GLFW_RELEASE;
 import static org.lwjgl.glfw.GLFW.glfwDestroyWindow;
 import static org.lwjgl.glfw.GLFW.glfwGetClipboardString;
+import static org.lwjgl.glfw.GLFW.glfwGetCurrentContext;
+import static org.lwjgl.glfw.GLFW.glfwMakeContextCurrent;
 import static org.lwjgl.glfw.GLFW.glfwSetCharCallback;
 import static org.lwjgl.glfw.GLFW.glfwSetClipboardString;
 import static org.lwjgl.glfw.GLFW.glfwSetKeyCallback;
@@ -84,8 +87,8 @@ public class ImGuiLayer {
         final ImGuiIO io = ImGui.getIO();
 
         io.setIniFilename("imgui.ini");
-        io.setConfigFlags(ImGuiConfigFlags.DockingEnable);
-        //io.setConfigFlags(ImGuiConfigFlags.ViewportsEnable);
+        io.addConfigFlags(ImGuiConfigFlags.DockingEnable);
+        io.addConfigFlags(ImGuiConfigFlags.ViewportsEnable);
         io.setBackendPlatformName("imgui_java_impl_glfw");
 
         // ------------------------------------------------------------
@@ -213,31 +216,27 @@ public class ImGuiLayer {
         ImGui.render();
         imGuiGl3.renderDrawData(ImGui.getDrawData());
 
-//        if (ImGui.getIO().hasConfigFlags(ImGuiConfigFlags.ViewportsEnable)) {
-//            final long backupGlfwWindow = glfwGetCurrentContext();
-//            ImGui.updatePlatformWindows();
-//            ImGui.renderPlatformWindowsDefault();
-//            glfwMakeContextCurrent(backupGlfwWindow);
-//        }
+        if (ImGui.getIO().hasConfigFlags(ImGuiConfigFlags.ViewportsEnable)) {
+            final long backupGlfwWindow = glfwGetCurrentContext();
+            ImGui.updatePlatformWindows();
+            ImGui.renderPlatformWindowsDefault();
+            glfwMakeContextCurrent(backupGlfwWindow);
+        }
     }
 
     // If you want to clean a room after yourself - do it by yourself
     private void destroyImGui() {
         imGuiGl3.dispose();
-        imGuiImplGlfw.dispose();
         ImGui.destroyContext();
-        Callbacks.glfwFreeCallbacks(glfwWindow);
-        glfwDestroyWindow(glfwWindow);
-        glfwTerminate();
     }
 
     private void setupDockspace() {
         int windowFlags = ImGuiWindowFlags.MenuBar | ImGuiWindowFlags.NoDocking;
 
-//        ImGuiViewport mainViewport = ImGui.getMainViewport();
-//        ImGui.setNextWindowPos(mainViewport.getWorkPosX(), mainViewport.getWorkPosY());
-//        ImGui.setNextWindowSize(mainViewport.getWorkSizeX(), mainViewport.getWorkSizeY());
-//        ImGui.setNextWindowViewport(mainViewport.getID());
+        ImGuiViewport mainViewport = ImGui.getMainViewport();
+        ImGui.setNextWindowPos(mainViewport.getWorkPosX(), mainViewport.getWorkPosY());
+        ImGui.setNextWindowSize(mainViewport.getWorkSizeX(), mainViewport.getWorkSizeY());
+        ImGui.setNextWindowViewport(mainViewport.getID());
         ImGui.setNextWindowPos(0.0f, 0.0f);
         ImGui.setNextWindowSize(Window.getWidth(), Window.getHeight());
         ImGui.pushStyleVar(ImGuiStyleVar.WindowRounding, 0.0f);

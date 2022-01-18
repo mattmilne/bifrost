@@ -28,7 +28,7 @@ public class EditorCamera extends Component {
     @Override
     public void editorUpdate(float dt) {
         if (MouseListener.mouseButtonDown(GLFW_MOUSE_BUTTON_MIDDLE)) {
-            Vector2f mousePos = new Vector2f(MouseListener.getOrthoX(), MouseListener.getOrthoY());
+            Vector2f mousePos = MouseListener.getWorld();
             if (dragDebounce > 0.0f) {
                 this.clickOrigin = mousePos;
                 dragDebounce -= dt;
