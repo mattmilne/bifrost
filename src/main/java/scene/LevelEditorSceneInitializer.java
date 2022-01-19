@@ -2,6 +2,7 @@ package scene;
 
 import bifrost.Sound;
 import component.EditorCamera;
+import component.tag.Ground;
 import component.KeyControl;
 import component.StateMachine;
 import component.gizmo.GizmoSystem;
@@ -16,6 +17,9 @@ import bifrost.GameObject;
 import bifrost.Prefab;
 import bifrost.Scene;
 import org.joml.Vector2f;
+import physics2d.component.Box2DCollider;
+import physics2d.component.Rigidbody2D;
+import physics2d.enums.BodyType;
 import renderer.Texture;
 import util.AssetPool;
 import util.Settings;
@@ -52,9 +56,18 @@ public class LevelEditorSceneInitializer extends SceneInitializer {
         AssetPool.addSpritesheet("assets/images/spritesheets/decorationsAndBlocks.png",
                 new Spritesheet(AssetPool.getTexture("assets/images/spritesheets/decorationsAndBlocks.png"),
                         16, 16, 81, 0));
-        AssetPool.addSpritesheet("assets/images/spritesheet.png",
-                new Spritesheet(AssetPool.getTexture("assets/images/spritesheet.png"),
+        AssetPool.addSpritesheet("assets/images/spritesheets/spritesheet.png",
+                new Spritesheet(AssetPool.getTexture("assets/images/spritesheets/spritesheet.png"),
                         16, 16, 26, 0));
+        AssetPool.addSpritesheet("assets/images/spritesheets/bigSpritesheet.png",
+                new Spritesheet(AssetPool.getTexture("assets/images/spritesheets/bigSpritesheet.png"),
+                        16, 32, 42, 0));
+        AssetPool.addSpritesheet("assets/images/spritesheets/turtle.png",
+                new Spritesheet(AssetPool.getTexture("assets/images/spritesheets/turtle.png"),
+                        16, 24, 4, 0));
+        AssetPool.addSpritesheet("assets/images/spritesheets/pipes.png",
+                new Spritesheet(AssetPool.getTexture("assets/images/spritesheets/pipes.png"),
+                        32, 32, 4, 0));
         AssetPool.addSpritesheet("assets/images/spritesheets/items.png",
                 new Spritesheet(AssetPool.getTexture("assets/images/spritesheets/items.png"),
                         16, 16, 43, 0));
@@ -114,6 +127,9 @@ public class LevelEditorSceneInitializer extends SceneInitializer {
 
                 float windowX2 = windowPos.x + windowSize.x;
                 for (int i = 0; i < sprites.size(); i++) {
+                    if (i == 34) continue;
+                    if (i >= 38 && i < 61) continue;
+
                     Sprite sprite = sprites.getSprite(i);
                     float spriteWidth = sprite.getWidth() * 4;
                     float spriteHeight = sprite.getHeight() * 4;
@@ -123,7 +139,16 @@ public class LevelEditorSceneInitializer extends SceneInitializer {
                     ImGui.pushID(i);
                     if (ImGui.imageButton(id, spriteWidth, spriteHeight, texCoords[2].x, texCoords[0].y, texCoords[0].x, texCoords[2].y)) {
                         GameObject object = Prefab.generateSpriteObject(sprite, Settings.GRID_WIDTH, Settings.GRID_HEIGHT);
-                        // Attach this to the mouse cursor
+                        Rigidbody2D rigidbody2D = new Rigidbody2D();
+                        rigidbody2D.setBodyType(BodyType.Static);
+                        object.addComponent(rigidbody2D);
+                        Box2DCollider box2DCollider = new Box2DCollider();
+                        box2DCollider.setHalfSize(new Vector2f(Settings.GRID_WIDTH, Settings.GRID_HEIGHT));
+                        object.addComponent(box2DCollider);
+                        object.addComponent(new Ground());
+                        if (i == 12) {
+//                            object.addComponent(new Breakable());
+                        }
                         levelEditorStuff.getComponent(MouseControl.class).pickupObject(object);
                     }
                     ImGui.popID();
@@ -141,7 +166,7 @@ public class LevelEditorSceneInitializer extends SceneInitializer {
             }
 
             if (ImGui.beginTabItem("Prefabs")) {
-                Spritesheet playerSprites = AssetPool.getSpritesheet("assets/images/spritesheet.png");
+                Spritesheet playerSprites = AssetPool.getSpritesheet("assets/images/spritesheets/spritesheet.png");
                 Sprite sprite = playerSprites.getSprite(0);
                 float spriteWidth = sprite.getWidth() * 4;
                 float spriteHeight = sprite.getHeight() * 4;

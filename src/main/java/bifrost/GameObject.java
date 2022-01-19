@@ -135,6 +135,7 @@ public class GameObject {
         Gson gson = new GsonBuilder()
                 .registerTypeAdapter(Component.class, new ComponentSerializer())
                 .registerTypeAdapter(GameObject.class, new GameObjectSerializer())
+                .enableComplexMapKeySerialization()
                 .create();
         String objAsJson = gson.toJson(this);
         GameObject gameObject = gson.fromJson(objAsJson, GameObject.class);

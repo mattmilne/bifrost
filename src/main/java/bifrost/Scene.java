@@ -129,6 +129,7 @@ public class Scene {
                 .setPrettyPrinting()
                 .registerTypeAdapter(Component.class, new ComponentSerializer())
                 .registerTypeAdapter(GameObject.class, new GameObjectSerializer())
+                .enableComplexMapKeySerialization()
                 .create();
 
         try {
@@ -148,6 +149,7 @@ public class Scene {
                 .setPrettyPrinting()
                 .registerTypeAdapter(Component.class, new ComponentSerializer())
                 .registerTypeAdapter(GameObject.class, new GameObjectSerializer())
+                .enableComplexMapKeySerialization()
                 .create();
 
         String inFile = "";

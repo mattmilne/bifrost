@@ -5,6 +5,7 @@ import bifrost.KeyListener;
 import bifrost.MouseListener;
 import bifrost.Scene;
 import bifrost.Window;
+import component.tag.NonPickable;
 import editor.PropertiesWindow;
 import org.joml.Vector2f;
 import org.joml.Vector2i;

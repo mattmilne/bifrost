@@ -1,8 +1,7 @@
 package component.gizmo;
 
-import bifrost.KeyListener;
 import component.Component;
-import component.NonPickable;
+import component.tag.NonPickable;
 import component.Sprite;
 import component.SpriteRenderer;
 import editor.PropertiesWindow;
@@ -13,9 +12,6 @@ import bifrost.Window;
 import org.joml.Vector2f;
 import org.joml.Vector4f;
 
-import static org.lwjgl.glfw.GLFW.GLFW_KEY_D;
-import static org.lwjgl.glfw.GLFW.GLFW_KEY_DELETE;
-import static org.lwjgl.glfw.GLFW.GLFW_KEY_LEFT_CONTROL;
 import static org.lwjgl.glfw.GLFW.GLFW_MOUSE_BUTTON_LEFT;
 
 public class Gizmo extends Component {

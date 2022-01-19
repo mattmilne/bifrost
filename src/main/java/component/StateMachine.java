@@ -23,14 +23,6 @@ public class StateMachine extends Component {
         }
     }
 
-    public void addStateTrigger(String from, String to, String onTrigger) {
-        this.stateTransfers.put(new StateTrigger(from, onTrigger), to);
-    }
-
-    public void addState(AnimationState state) {
-        this.states.add(state);
-    }
-
     public void setDefaultState(String animationTitle) {
         for (AnimationState animationState : states) {
             if (animationState.title.equals(animationTitle)) {
@@ -43,6 +35,14 @@ public class StateMachine extends Component {
         }
 
         System.out.println("Unable to find default state '" + animationTitle + "'");
+    }
+
+    public void addState(String from, String to, String onTrigger) {
+        this.stateTransfers.put(new StateTrigger(from, onTrigger), to);
+    }
+
+    public void addState(AnimationState state) {
+        this.states.add(state);
     }
 
     public void trigger(String trigger) {

@@ -11,8 +11,8 @@ public class Rigidbody2D extends Component {
     private final Vector2f velocity = new Vector2f();
     private float angularDamping = 0.8f;
     private float linearDamping = 0.9f;
-    private final float mass = 0.0f;
-    private final BodyType bodyType = BodyType.Dynamic;
+    private float mass = 0.0f;
+    private BodyType bodyType = BodyType.Dynamic;
     private final float friction = 0.1f;
     public float angularVelocity = 0.0f;
     public float gravityScale = 1.0f;
@@ -90,35 +90,59 @@ public class Rigidbody2D extends Component {
         return this.isSensor;
     }
 
-    public void setRawBody(Body body) {
-        this.rawBody = body;
-    }
-
-    public Body getRawBody() {
-        return this.rawBody;
-    }
-
     public float getAngularDamping() {
         return this.angularDamping;
+    }
+
+    public void setAngularDamping(float angularDamping) {
+        this.angularDamping = angularDamping;
     }
 
     public float getLinearDamping() {
         return this.linearDamping;
     }
 
-    public boolean isFixedRotation() {
-        return this.fixedRotation;
+    public void setLinearDamping(float linearDamping) {
+        this.linearDamping = linearDamping;
     }
 
-    public boolean isContinuousCollision() {
-        return this.continuousCollision;
+    public float getMass() {
+        return this.mass;
+    }
+
+    public void setMass(float mass) {
+        this.mass = mass;
     }
 
     public BodyType getBodyType() {
         return this.bodyType;
     }
 
-    public float getMass() {
-        return this.mass;
+    public void setBodyType(BodyType bodyType) {
+        this.bodyType = bodyType;
+    }
+
+    public boolean isFixedRotation() {
+        return this.fixedRotation;
+    }
+
+    public void setFixedRotation(boolean fixedRotation) {
+        this.fixedRotation = fixedRotation;
+    }
+
+    public boolean isContinuousCollision() {
+        return this.continuousCollision;
+    }
+
+    public void setContinuousCollision(boolean continuousCollision) {
+        this.continuousCollision = continuousCollision;
+    }
+
+    public Body getRawBody() {
+        return this.rawBody;
+    }
+
+    public void setRawBody(Body body) {
+        this.rawBody = body;
     }
 }
