@@ -2,6 +2,7 @@ package scene;
 
 import bifrost.Sound;
 import component.EditorCamera;
+import component.block.BreakableBlock;
 import component.tag.Ground;
 import component.KeyControl;
 import component.StateMachine;
@@ -147,7 +148,7 @@ public class LevelEditorSceneInitializer extends SceneInitializer {
                         object.addComponent(box2DCollider);
                         object.addComponent(new Ground());
                         if (i == 12) {
-//                            object.addComponent(new Breakable());
+                            object.addComponent(new BreakableBlock());
                         }
                         levelEditorStuff.getComponent(MouseControl.class).pickupObject(object);
                     }

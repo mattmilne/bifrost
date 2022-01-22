@@ -6,6 +6,11 @@ import component.Sprite;
 import component.SpriteRenderer;
 import component.Spritesheet;
 import component.StateMachine;
+import component.block.CoinBlock;
+import component.block.QuestionBlock;
+import component.tag.Ground;
+import org.joml.Vector2f;
+import physics2d.component.Box2DCollider;
 import physics2d.component.PillboxCollider;
 import physics2d.component.Rigidbody2D;
 import physics2d.enums.BodyType;
@@ -153,17 +158,55 @@ public class Prefab {
         AnimationState flickerState = new AnimationState();
         flickerState.title = "Flicker";
         float defaultFrameTime = 0.23f;
-        flickerState.addFrame(items.getSprite(0), defaultFrameTime);
+        flickerState.addFrame(items.getSprite(0), 0.57f);
         flickerState.addFrame(items.getSprite(1), defaultFrameTime);
         flickerState.addFrame(items.getSprite(2), defaultFrameTime);
         flickerState.setLoop(true);
 
+        AnimationState inactiveState = new AnimationState();
+        inactiveState.title = "Inactive";
+        inactiveState.addFrame(items.getSprite(3), 0.1f);
+        inactiveState.setLoop(false);
+
         StateMachine stateMachine = new StateMachine();
         stateMachine.addState(flickerState);
+        stateMachine.addState(inactiveState);
         stateMachine.setDefaultState(flickerState.title);
+        stateMachine.addState(flickerState.title, inactiveState.title, "setInactive");
         questionBlock.addComponent(stateMachine);
+        questionBlock.addComponent(new QuestionBlock());
+
+        Rigidbody2D rigidbody2D = new Rigidbody2D();
+        rigidbody2D.setBodyType(BodyType.Static);
+        questionBlock.addComponent(rigidbody2D);
+        Box2DCollider box2DCollider = new Box2DCollider();
+        box2DCollider.setHalfSize(new Vector2f(0.25f, 0.25f));
+        questionBlock.addComponent(box2DCollider);
+        questionBlock.addComponent(new Ground());
 
         return questionBlock;
+    }
+
+    public static GameObject generateCoinBlock() {
+        Spritesheet items = AssetPool.getSpritesheet("assets/images/spritesheets/items.png");
+        GameObject coin = generateSpriteObject(items.getSprite(7), 0.25f, 0.25f);
+
+        AnimationState coinFlip = new AnimationState();
+        coinFlip.title = "CoinFlip";
+        float defaultFrameTime = 0.23f;
+        coinFlip.addFrame(items.getSprite(7), 0.57f);
+        coinFlip.addFrame(items.getSprite(8), defaultFrameTime);
+        coinFlip.addFrame(items.getSprite(9), defaultFrameTime);
+        coinFlip.setLoop(true);
+
+        StateMachine stateMachine = new StateMachine();
+        stateMachine.addState(coinFlip);
+        stateMachine.setDefaultState(coinFlip.title);
+        coin.addComponent(stateMachine);
+        coin.addComponent(new QuestionBlock());
+        coin.addComponent(new CoinBlock());
+
+        return coin;
     }
 
     private static AnimationState getRunAnimationState(Spritesheet playerSprites, float defaultFrameTime) {

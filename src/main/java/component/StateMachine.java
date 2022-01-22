@@ -52,14 +52,10 @@ public class StateMachine extends Component {
             for (AnimationState animationState : states) {
                 if (animationState.title.equals(target)) {
                     currentState = animationState;
-                    break;
+                    return;
                 }
             }
-
-            return;
         }
-
-        System.out.println("Unable to find trigger '" + trigger + "'");
     }
 
     @Override
